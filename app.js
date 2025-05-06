@@ -24,7 +24,7 @@ app.set('views', path.join(__dirname, 'views'));
 const pool = mysql.createPool({
     host: '127.0.0.1',
     user: 'root',
-    password: 'admin',
+    password: '',
     database: 'social_media_web',
     waitForConnections: true,
     connectionLimit: 10,
@@ -73,6 +73,17 @@ app.get('/register', (req, res) => {
 
 app.get('/login', (req, res) => {
     res.render('login', { error: null });
+});
+
+app.get('/user/search/', isAuthenticated, async (req, res) => {
+    try {
+        const searchTerm = req.query.q || '';
+        const [users] = await pool.query('SELECT * FROM users WHERE username LIKE ?', [`%${searchTerm}%`]);
+        res.render('user/search', { users, searchTerm });
+    } catch (error) {
+        console.error('Error searching for users:', error);
+        res.status(500).send('Server Error');
+    }
 });
 
 app.post('/register', async (req, res) => {
@@ -145,4 +156,4 @@ app.post('/comment/:postId', isAuthenticated, async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
+}); 
